@@ -3,7 +3,7 @@ const crypto = require('crypto')
 const bcrypt = require('bcryptjs')
 const { models } = require('mongoose')
 const mailer = require('./Mailer')
-const { ValidateUserRegister } = require('../Validation')
+const { ValidateUserRegister } = require('../Validation/Index')
 
 const { User } = models
 
