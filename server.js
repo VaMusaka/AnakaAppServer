@@ -8,7 +8,7 @@ const passport = require('passport')
 require('./src/Database/Index')
 
 //INITIALIZE ROUTES
-const { User } = require('./src/Routes')
+const { User } = require('./src/Routes/index')
 
 //AUTHENTICATION MIDDLEWARE
 const authentication = require('./src/Middleware/Authentication')
