@@ -28,7 +28,7 @@ artifacts:
   discard-paths: no
   #base-directory: 'client/build*'
 eb_codebuild_settings:
-  CodeBuildServiceRole: AWSElasticBeanstalkFullAccess
+  CodeBuildServiceRole: codebuild-anaka-app-service-role
   ComputeType: BUILD_GENERAL1_SMALL
   Image: "aws/codebuild/standard:4.0"
   Timeout: 30
