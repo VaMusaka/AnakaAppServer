@@ -29,7 +29,7 @@ require('./src/Config/Passport')(passport)
 app.use('/api/user', User)
 
 const port = process.env.PORT || 5000
-app.get('/*', (res, res) => {
+app.get('/*', (req, res) => {
   res.send('IT WORKS')
 })
 
