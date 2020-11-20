@@ -28,5 +28,9 @@ require('./src/Config/Passport')(passport)
 //ROUTES
 app.use('/api/user', User)
 
-const port = process.env.PORT || 80
+const port = process.env.PORT || 5000
+app.get('/*', (res, res) => {
+  res.send('IT WORKS')
+})
+
 app.listen(port, () => console.log(`|| === SERVER RUNNING ON PORT ${port}`))
