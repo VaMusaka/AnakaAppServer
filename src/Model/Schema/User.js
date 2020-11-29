@@ -13,11 +13,11 @@ const UserSchema = new Schema(
     authToken: { type: String },
     changePassword: {
       token: { type: String },
-      date: { type: String },
+      date: { type: Date },
     },
     emailVerification: {
       token: { type: String },
-      date: { type: String },
+      date: { type: Date },
     },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }

@@ -33,13 +33,13 @@ module.exports = data => {
             message: 'Email must be between 3 and 64 characters',
           },
         },
-        // {
-        //   phone: {
-        //     value: phone,
-        //     criteria: { min: 10, max: 15 },
-        //     message: 'Email must be between 10 and 15 characters',
-        //   },
-        // },
+        /* {
+           phone: {
+             value: phone,
+             criteria: { min: 10, max: 15 },
+             message: 'Email must be between 10 and 15 characters',
+           },
+         },*/
         {
           password: {
             value: password,
