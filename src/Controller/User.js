@@ -1,8 +1,9 @@
 const { badRequest, badImplementation } = require('@hapi/boom')
-const crypto = require('crypto')
 const bcrypt = require('bcryptjs')
 const mailer = require('./Mailer')
 const { models } = require('mongoose')
+const jwt = require('jsonwebtoken')
+const jwt_decode = require('jwt-decode')
 const { VerifyEmailTemplate, WelcomeEmailTemplate, PasswordResetEmailTemplate } = require('../Utils/EmailTemplates')
 const { CodeGenerator, RegExEmail } = require('../Utils/Helper')
 const {
@@ -14,7 +15,6 @@ const {
 } = require('../Validation/Index')
 const moment = require('moment')
 const { AUTH_VALID_PERIOD, AUTH_SECRET } = process.env
-
 const { User } = models
 
 const getUserByEmail = async email => {
@@ -64,16 +64,16 @@ const Register = async (req, res) => {
 
   //INPUT HAS ERRORS
   if (!isValid) {
-    const { output } = badRequest(errors)
-    return res.status(output.statusCode).json(output)
+    const { output } = badRequest()
+    return res.status(output.statusCode).json(errors)
   }
 
   const verificationToken = CodeGenerator(1000, 9999)
 
   //CHECK USER EXISTS
   if (await getUserByEmail(email)) {
-    const { output } = badRequest({ email: 'Email address already taken please login' })
-    return res.status(output.statusCode).json(output)
+    const { output } = badRequest()
+    return res.status(output.statusCode).json({ email: 'Email address already taken please login' })
   }
 
   try {
@@ -93,7 +93,7 @@ const Register = async (req, res) => {
     )
 
     if (!newUser) {
-      const { output } = badRequest({ flash: 'Error creating account please try again' })
+      const { output } = badRequest('Error creating account please try again')
       res.status(output.statusCode).json(output)
     }
     //SEND VERIFICATION EMAIL
@@ -103,8 +103,8 @@ const Register = async (req, res) => {
     //RETURN SUCCESS
     res.json({ success: true })
   } catch (error) {
-    const { output } = badRequest(error)
-    res.status(output.statusCode).json(output)
+    const { output } = badRequest()
+    res.status(output.statusCode).json(error)
   }
 }
 
@@ -119,40 +119,44 @@ const Login = async (req, res) => {
   //INPUT HAS ERRORS
   if (!isValid) {
     const { output } = badRequest(errors)
-    return res.status(output.statusCode).json(output)
+    return res.status(output.statusCode).json(errors)
   }
 
   //CHECK USER EXISTS
   const user = await getUserByEmail(email)
   if (!user) {
-    const { output } = badRequest({
+    const { output } = badRequest()
+    return res.status(output.statusCode).json({
       email: generalAuthError,
       password: generalAuthError,
     })
-    return res.status(output.statusCode).json(output)
   }
 
   if (!user.emailVerified) {
-    const { output } = badRequest({
-      emailVerified: true,
+    console.log(user.emailVerified)
+    const { output } = badRequest()
+
+    return res.json({
+      verifyEmail: true,
       email: 'This email address still needs verification ',
     })
-    return res.status(output.statusCode).json(output)
   }
 
   //CHECK PASSWORDS MATCH
   const passwordIsMatch = await checkPassword(password, user.password)
   if (!passwordIsMatch) {
-    const { output } = badRequest({
+    const { output } = badRequest()
+
+    console.log('output')
+    return res.status(output.statusCode).json({
       email: generalAuthError,
       password: generalAuthError,
     })
-    return res.status(output.statusCode).json(output)
   }
 
   //GENERATE AUTHENTICATION TOKEN
   const token = await generateAuthToken(user)
-  if (!auth) {
+  if (!token) {
     const { output } = badImplementation('Failed to authenticate')
     return res.status(output.statusCode).json(output)
   }
@@ -163,29 +167,36 @@ const Login = async (req, res) => {
 const VerifyEmail = async (req, res) => {
   const { email, emailVerificationToken } = req.body
   const data = { email, emailVerificationToken }
+
   const { isValid, errors } = ValidateEmailVerification(data)
 
   // VALIDATION ERRORS
   if (!isValid) {
     const { output } = badRequest(errors)
-    return res.status(output.statusCode).json(output)
+    return res.status(output.statusCode).json(errors)
   }
 
   //COMPLETE VALIDATION AND UPDATE USER
   try {
     const user = await User.findOneAndUpdate(
-      { email: RegExEmail(email), emailVerificationToken },
+      { email: RegExEmail(email), emailVerification: { token: emailVerificationToken } },
       { $set: { emailVerified: true } },
       { new: true }
     )
+
+    if (!user) {
+      const { output } = badRequest('Email verification failed')
+      return res.status(output.statusCode).json(output.payload.message)
+    }
+
     // SEND WELCOME EMAIL
     const message = WelcomeEmailTemplate(user)
     await mailer(message)
 
-    res.json(user)
+    res.json({ success: true })
   } catch (err) {
-    const { output } = badImplementation(err)
-    res.status(output.statusCode).json(output)
+    const { output } = badImplementation()
+    res.status(output.statusCode).json(err)
   }
 }
 
@@ -195,8 +206,8 @@ const ResetPasswordRequest = async (req, res) => {
 
   //EMAIL IS VALID
   if (!isValid) {
-    const { output } = badRequest(errors)
-    return res.status(output.statusCode).json(output)
+    const { output } = badRequest()
+    return res.status(output.statusCode).json(errors)
   }
 
   //COMPLETE GET USER, SET PASSWORD RESET TOKEN
@@ -226,9 +237,8 @@ const ResetPassword = async (req, res) => {
 
   //ERRORS IN REQUEST
   if (!isValid) {
-    const { output } = badRequest(errors)
-    console.log(errors)
-    return res.status(output.statusCode).json(output)
+    const { output } = badRequest()
+    return res.status(output.statusCode).json(errors)
   }
 
   try {
@@ -236,13 +246,13 @@ const ResetPassword = async (req, res) => {
     const user = await User.findOne({ email: RegExEmail(email) })
 
     if (!user) {
-      const { output } = badRequest({ token: 'Invalid Token' })
-      return res.status(output.statusCode).json(output)
+      const { output } = badRequest()
+      return res.status(output.statusCode).json({ token: 'Invalid Token' })
     }
 
     if (user.changePassword.token !== token) {
-      const { output } = badRequest({ token: 'Invalid Token' })
-      return res.status(output.statusCode).json(output)
+      const { output } = badRequest()
+      return res.status(output.statusCode).json({ token: 'Invalid Token' })
     }
 
     //CHECK TOKEN EXPIRY
@@ -251,8 +261,8 @@ const ResetPassword = async (req, res) => {
 
     if (isExpired) {
       console.log('token expired')
-      const { output } = badRequest({ token: 'Invalid Token' })
-      return res.status(output.statusCode).json(output)
+      const { output } = badRequest()
+      return res.status(output.statusCode).json({ token: 'Invalid Token' })
     }
 
     user.changePassword.token = null
@@ -261,9 +271,9 @@ const ResetPassword = async (req, res) => {
 
     await user.save()
     res.json('success')
-  } catch (e) {
-    const { output } = badRequest(e)
-    return res.status(output.statusCode).json(output)
+  } catch (err) {
+    const { output } = badRequest()
+    return res.status(output.statusCode).json(err)
   }
 }
 

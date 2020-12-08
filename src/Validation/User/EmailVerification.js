@@ -1,23 +1,23 @@
 module.exports = data => {
-  const { email = '', token = '' } = data
+  const { email = '', emailVerificationToken = '' } = data
 
   const validationRules = [
     {
       isLength: [
         {
-          token: {
-            value: token,
+          emailVerificationToken: {
+            value: emailVerificationToken,
             criteria: { min: 4, max: 4 },
-            message: 'Invalid token',
+            message: 'Invalid verification code',
           },
         },
       ],
       isNumeric: [
         {
-          token: {
-            value: token,
+          emailVerificationToken: {
+            value: emailVerificationToken,
             criteria: {},
-            message: 'Invalid token',
+            message: 'Invalid verification code',
           },
         },
       ],
@@ -28,7 +28,7 @@ module.exports = data => {
           email: {
             value: email,
             criteria: {},
-            message: 'Invalid email',
+            message: 'Invalid verification code',
           },
         },
       ],
@@ -36,9 +36,9 @@ module.exports = data => {
   ]
   const requiredFields = [
     {
-      token: {
-        value: token,
-        message: 'Token not supplied',
+      emailVerificationToken: {
+        value: emailVerificationToken,
+        message: 'Invalid verification code',
       },
     },
     {
