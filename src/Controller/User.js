@@ -96,6 +96,7 @@ const Register = async (req, res) => {
       const { output } = badRequest('Error creating account please try again')
       res.status(output.statusCode).json(output)
     }
+
     //SEND VERIFICATION EMAIL
     const message = VerifyEmailTemplate(user)
     await mailer(message)
@@ -200,6 +201,19 @@ const VerifyEmail = async (req, res) => {
   }
 }
 
+const SendEmailVerificationCode = async (req, res) => {
+  const { email } = req.body
+
+  //SEND VERIFICATION EMAIL
+  const user = await getUserByEmail(email)
+  if (user) {
+    const message = VerifyEmailTemplate(user)
+    await mailer(message)
+  }
+
+  res.json({ success: true })
+}
+
 const ResetPasswordRequest = async (req, res) => {
   const { email } = req.body
   const { isValid, errors } = ValidateResetPasswordRequest({ email })
@@ -282,5 +296,6 @@ module.exports = {
   Login,
   VerifyEmail,
   ResetPasswordRequest,
+  SendEmailVerificationCode,
   ResetPassword,
 }
