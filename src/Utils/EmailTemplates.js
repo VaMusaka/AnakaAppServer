@@ -25,14 +25,14 @@ module.exports = {
       },
     }
   },
-  PasswordResetEmailTemplate: ({ email, firstname, changePassword: { token } }) => {
+  PasswordResetEmailTemplate: ({ email, firstname, changePassword: { passcode } }) => {
     return {
       to: email,
       subject: 'Password Reset',
       dynamic_template_data: {
         title: 'Password Reset',
         firstname,
-        message: `You have requested a  password reset, your password reset code is ${token}. \n This is valid for only 2 hours, if you have not requested a password reset please ignore this email.`,
+        message: `You have requested a  password reset, your password reset code is ${passcode}. \n This is valid for only 2 hours, if you have not requested a password reset please ignore this email.`,
         // button_text: 'Verify',
         // button_uri: `${baseUri}/users/verify/${verificationToken}`,
       },

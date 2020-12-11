@@ -226,10 +226,10 @@ const ResetPasswordRequest = async (req, res) => {
 
   //COMPLETE GET USER, SET PASSWORD RESET TOKEN
   try {
-    const token = CodeGenerator(1000, 9999)
+    const passcode = CodeGenerator(100000, 999999)
     const user = await User.findOneAndUpdate(
       { email: RegExEmail(email) },
-      { $set: { changePassword: { token, date: moment() } } },
+      { $set: { changePassword: { passcode, date: moment() } } },
       { new: true }
     )
     // SEND WELCOME EMAIL
@@ -245,8 +245,8 @@ const ResetPasswordRequest = async (req, res) => {
 }
 
 const ResetPassword = async (req, res) => {
-  const { token, email, password, confirm_password } = req.body
-  const request = { token, email, password, confirm_password }
+  const { passcode, email, password, confirm_password } = req.body
+  const request = { passcode, email, password, confirm_password }
   const { isValid, errors } = ValidateResetPassword(request)
 
   //ERRORS IN REQUEST
@@ -261,12 +261,12 @@ const ResetPassword = async (req, res) => {
 
     if (!user) {
       const { output } = badRequest()
-      return res.status(output.statusCode).json({ token: 'Invalid Token' })
+      return res.status(output.statusCode).json({ passcode: 'Invalid Passcode' })
     }
 
-    if (user.changePassword.token !== token) {
+    if (user.changePassword.passcode !== passcode) {
       const { output } = badRequest()
-      return res.status(output.statusCode).json({ token: 'Invalid Token' })
+      return res.status(output.statusCode).json({ passcode: 'Invalid Passcode' })
     }
 
     //CHECK TOKEN EXPIRY
@@ -274,12 +274,12 @@ const ResetPassword = async (req, res) => {
     const isExpired = !moment(user.changePassword.date).isAfter(twoHoursAgo)
 
     if (isExpired) {
-      console.log('token expired')
+      console.log('Passcode expired')
       const { output } = badRequest()
-      return res.status(output.statusCode).json({ token: 'Invalid Token' })
+      return res.status(output.statusCode).json({ passcode: 'Invalid Passcode' })
     }
 
-    user.changePassword.token = null
+    user.changePassword.passcode = null
     user.changePassword.date = null
     user.password = generatePasswordHash(password)
 

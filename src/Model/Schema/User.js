@@ -12,7 +12,7 @@ const UserSchema = new Schema(
     emailVerified: { type: Boolean, default: false },
     authToken: { type: String },
     changePassword: {
-      token: { type: String },
+      passcode: { type: String },
       date: { type: Date },
     },
     emailVerification: {

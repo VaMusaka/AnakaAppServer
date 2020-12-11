@@ -1,14 +1,14 @@
 module.exports = data => {
-  const { email = '', token = '', password = '', confirm_password = '' } = data
+  const { email = '', passcode = '', password = '', confirm_password = '' } = data
 
   const validationRules = [
     {
       isLength: [
         {
-          token: {
-            value: token,
-            criteria: { min: 4, max: 4 },
-            message: 'Invalid token',
+          passcode: {
+            value: passcode,
+            criteria: { min: 6, max: 6 },
+            message: 'Invalid passcode',
           },
         },
         {
@@ -30,8 +30,8 @@ module.exports = data => {
     {
       isNumeric: [
         {
-          token: {
-            value: token,
+          passcode: {
+            value: passcode,
             criteria: {},
             message: 'Invalid token',
           },
@@ -56,8 +56,8 @@ module.exports = data => {
 
   const requiredFields = [
     {
-      token: {
-        value: token,
+      passcode: {
+        value: passcode,
         message: 'Invalid token.',
       },
     },
