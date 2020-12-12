@@ -8,6 +8,7 @@ const UserSchema = new Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     active: { type: Boolean, default: true, required: true },
+    phone: { type: String, required: true, minLength: 11, maxLength: 15 },
     type: { type: String, required: true, default: 'customer', enum: ['customer', 'service provider'] },
     emailVerified: { type: Boolean, default: false },
     authToken: { type: String },

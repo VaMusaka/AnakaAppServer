@@ -7,8 +7,6 @@ module.exports = {
         title: 'Please verify your email.',
         firstname,
         message: `Hi ${firstname}, \n Your verification code is ${verificationToken}, \n Please use this to activate your Anaka account.`,
-        // button_text: 'Verify',
-        // button_uri: `${baseUri}/users/verify/${verificationToken}`,
       },
     }
   },
@@ -20,8 +18,6 @@ module.exports = {
         title: 'Account Activated',
         firstname,
         message: `Your account is now active, welcome to the Anaka Family,...... [Any more information to welcome users]`,
-        // button_text: 'Verify',
-        // button_uri: `${baseUri}/users/verify/${verificationToken}`,
       },
     }
   },
@@ -33,8 +29,6 @@ module.exports = {
         title: 'Password Reset',
         firstname,
         message: `You have requested a  password reset, your password reset code is ${passcode}. \n This is valid for only 2 hours, if you have not requested a password reset please ignore this email.`,
-        // button_text: 'Verify',
-        // button_uri: `${baseUri}/users/verify/${verificationToken}`,
       },
     }
   },

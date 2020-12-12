@@ -1,5 +1,5 @@
 module.exports = data => {
-  const { line1 = '', primaryLocation = '', city = '', county = '', country = '', postcode = '' } = data
+  const { line1 = '', primaryLocation = '', city = '', county = '', country = '', postal_code = '' } = data
 
   const validationRules = [
     {
@@ -25,8 +25,8 @@ module.exports = data => {
             criteria: { min: 3, max: 64 },
             message: 'Country must be between 3 and 64 characters',
           },
-          postcode: {
-            value: postcode,
+          postal_code: {
+            value: postal_code,
             criteria: { min: 3, max: 64 },
             message: 'Invalid Postal Code ',
           },
@@ -41,10 +41,10 @@ module.exports = data => {
     {
       isPostalCode: [
         {
-          postcode: {
-            value: postcode,
+          postal_code: {
+            value: postal_code,
             criteria: ['GB'],
-            message: 'Invalid Postcode',
+            message: 'Invalid Post Code',
           },
         },
       ],
@@ -77,8 +77,8 @@ module.exports = data => {
       },
     },
     {
-      postcode: {
-        value: postcode,
+      postal_code: {
+        value: postal_code,
         message: 'Postal/ZipCode Code is required',
       },
     },

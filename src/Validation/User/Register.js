@@ -3,7 +3,7 @@ module.exports = data => {
     firstname = '',
     lastname = '',
     email = '',
-    // phone = '',
+    phone = '',
     type = '',
     password = '',
     confirm_password = '',
@@ -33,13 +33,13 @@ module.exports = data => {
             message: 'Email must be between 3 and 64 characters',
           },
         },
-        /* {
-           phone: {
-             value: phone,
-             criteria: { min: 10, max: 15 },
-             message: 'Email must be between 10 and 15 characters',
-           },
-         },*/
+        {
+          phone: {
+            value: phone,
+            criteria: { min: 10, max: 15 },
+            message: 'Email must be between 10 and 15 characters',
+          },
+        },
         {
           password: {
             value: password,
@@ -60,29 +60,29 @@ module.exports = data => {
         },
       ],
     },
-    // {
-    //   isMobilePhone: [
-    //     {
-    //       phone: {
-    //         value: phone,
-    //         criteria: 'en-GB',
-    //         message: 'Invalid phone number',
-    //       },
-    //     },
-    //   ],
-    // },
+    {
+      isMobilePhone: [
+        {
+          phone: {
+            value: phone,
+            criteria: 'en-GB',
+            message: 'Invalid phone number',
+          },
+        },
+      ],
+    },
     {
       equals: [{ confirm_password: { value: confirm_password, criteria: password, message: 'Passwords must match' } }],
     },
   ]
 
   const requiredFields = [
-    // {
-    //   phone: {
-    //     value: phone,
-    //     message: 'Phone number is required',
-    //   },
-    // },
+    {
+      phone: {
+        value: phone,
+        message: 'Phone number is required',
+      },
+    },
     {
       firstname: {
         value: firstname,

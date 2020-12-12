@@ -11,7 +11,7 @@ const ServiceProviderSchema = new Schema(
       city: { type: String, isRequired: true },
       county: { type: String, isRequired: true },
       country: { type: String, isRequired: true },
-      postcode: { type: String, isRequired: true },
+      postal_code: { type: String, isRequired: true },
       longitude: { type: String },
       latitude: { type: String },
     },

@@ -18,7 +18,7 @@ const { AUTH_VALID_PERIOD, AUTH_SECRET } = process.env
 const { User } = models
 
 const getUserByEmail = async email => {
-  return await User.findOne({ email })
+  return await User.findOne({ email }).populate('Customer ServiceProvider')
 }
 
 const saveUser = async user => {
@@ -46,7 +46,7 @@ const checkPassword = async (input, password) => {
 }
 
 const generateAuthToken = async user => {
-  const payload = { id: user._id, email: user.email }
+  const payload = { id: user._id, email: user.email, name: `${user.firstname} ${user.lastname}`, phone: user.phone }
   try {
     const token = await jwt.sign(payload, AUTH_SECRET, { expiresIn: AUTH_VALID_PERIOD })
     return `Bearer ${token}`
@@ -56,8 +56,8 @@ const generateAuthToken = async user => {
 }
 
 const Register = async (req, res) => {
-  const { firstname, lastname, email, password, confirm_password, type } = req.body
-  const data = { firstname, lastname, email, password, confirm_password, type }
+  const { firstname, lastname, email, phone, password, confirm_password, type } = req.body
+  const data = { firstname, lastname, phone, email, password, confirm_password, type }
 
   //VALIDATE USER
   const { isValid, errors } = ValidateUserRegister(data)
