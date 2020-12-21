@@ -4,7 +4,7 @@ const { Schema, model, ObjectId } = require('mongoose')
 const ServiceProviderSchema = new Schema(
   {
     user: { type: ObjectId, ref: 'User' },
-    stripeServiceProviderId: { type: String, required: true },
+    stripeAccountId: { type: String, required: true },
     address: {
       line1: { type: String, isRequired: true },
       line2: { type: String },

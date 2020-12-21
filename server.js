@@ -11,7 +11,7 @@ require('./src/Database/Index')
 const { User } = require('./src/Routes/index')
 
 //AUTHENTICATION MIDDLEWARE
-const authentication = require('./src/Middleware/Authentication')
+const { authentication } = require('./src/Middleware/Authentication')
 
 //INITIALIZE APP
 const app = express()

@@ -1,11 +1,10 @@
-const { badRequest, notFound, notAllowed } = require('@hapi/boom')
+const { badRequest, notFound } = require('@hapi/boom')
 const { models } = require('mongoose')
-const { isEmpty } = require('lodash')
-const { User, Customer } = models
-const { ValidateCreateCustomer } = require('../Validation/Index')
-const { createStripeCustomer, updateStripeCustomer } = require('./Stripe')
+const { User, ServiceProvider } = models
+const { ValidateCreateServiceProvider } = require('../Validation/Index')
+const { createStripeServiceProvider, updateStripeServiceProvider } = require('./Stripe')
 
-const createCustomer = async (res, req) => {
+const createServiceProvider = async (res, req) => {
   const { user, body } = req
   const { email, id, name, phone } = user
   const { line1, line2, city, county, country, postal_code, latitude, longitude, primaryLocation } = body
@@ -13,40 +12,51 @@ const createCustomer = async (res, req) => {
   const address = { line1, line2, city, county, country, postal_code }
 
   //validate customer
-  const { isValid, errors } = ValidateCreateCustomer(customer)
+  const { isValid, errors } = ValidateCreateServiceProvider(customer)
 
   if (!isValid) {
-    const { output } = badRequest('Invalid Customer Date')
+    const { output } = badRequest('Invalid Service Provider Input')
     return res.status(output.statusCode).json({ ...errors, output })
   }
 
   try {
     //create stripe account
-    const stripeCustomer = await createStripeCustomer({ email, description: `Anaka User ${id},`, name, address, phone })
+    const stripeServiceProvider = await createStripeServiceProvider({
+      email,
+      description: `Anaka User ${id},`,
+      name,
+      address,
+      phone,
+    })
 
     //save customer and stripe account
-    const newCustomer = new Customer({ user: id, stripeCustomerId: stripeCustomer.id, address, primaryLocation })
+    const newServiceProvider = new ServiceProvider({
+      user: id,
+      stripeAccountId: stripeServiceProvider.id,
+      address,
+      primaryLocation,
+    })
 
-    const savedCustomer = await newCustomer.save()
+    const savedServiceProvider = await newServiceProvider.save()
 
-    if (!savedCustomer) {
+    if (!savedServiceProvider) {
       const { output } = badRequest('Error creating customer')
       return res.status(output.statusCode).json({ errors: { flash: output.payload.message }, output })
     }
 
-    return res.json(savedCustomer)
+    return res.json(savedServiceProvider)
   } catch (err) {
     const { output } = badRequest('Error creating customer')
     return res.status(output.statusCode).json({ ...err, output })
   }
 }
 
-const getCustomer = async (req, res) => {
+const getServiceProvider = async (req, res) => {
   const { id } = req.params
   try {
-    const customer = await Customer.findById(id)
+    const customer = await ServiceProvider.findById(id)
     if (!customer) {
-      const { output } = notFound('Customer not found')
+      const { output } = notFound('Service Provider not found')
       return res.status(output.statusCode).json({ flash: output.payload.message, output })
     }
 
@@ -57,11 +67,11 @@ const getCustomer = async (req, res) => {
   }
 }
 
-const getCustomers = async (req, res) => {
+const getServiceProviders = async (req, res) => {
   try {
-    const customer = await Customer.find(id)
+    const customer = await ServiceProvider.find(id)
     if (!customer) {
-      const { output } = notFound('Customers not found')
+      const { output } = notFound('Service Providers not found')
       return res.status(output.statusCode).json({ flash: output.payload.message, output })
     }
 
@@ -72,7 +82,7 @@ const getCustomers = async (req, res) => {
   }
 }
 
-const updateCustomer = async (req, res) => {
+const updateServiceProvider = async (req, res) => {
   const { user, body, params } = req
   const { customer_id } = params
   const { email, id, name, phone } = user
@@ -81,23 +91,23 @@ const updateCustomer = async (req, res) => {
   const address = { line1, line2, city, county, country, postal_code }
 
   //validate customer
-  const { isValid, errors } = ValidateCreateCustomer(customer)
+  const { isValid, errors } = ValidateCreateServiceProvider(customer)
 
   if (!isValid) {
-    const { output } = badRequest('Invalid Customer Date')
+    const { output } = badRequest('Invalid Service Provider Date')
     return res.status(output.statusCode).json({ ...errors, output })
   }
 
   try {
-    const updateCustomer = await Customer.findById(customer_id)
+    const updateServiceProvider = await ServiceProvider.findById(customer_id)
 
     if (!customer) {
-      const { output } = notFound('Customers not found')
+      const { output } = notFound('Service Providers not found')
       return res.status(output.statusCode).json({ flash: output.payload.message, output })
     }
 
     //create stripe account
-    const stripeCustomer = await updateStripeCustomer(updateCustomer.stripeCustomerId, {
+    const stripeServiceProvider = await updateStripeServiceProvider(updateServiceProvider.stripeAccountId, {
       email,
       description: `Anaka User ${id},`,
       name,
@@ -106,58 +116,29 @@ const updateCustomer = async (req, res) => {
     })
 
     //save updated customer
-    const updatedCustomer = await Customer.findByIdAndUpdate(
+    const updatedServiceProvider = await ServiceProvider.findByIdAndUpdate(
       customer_id,
       { $set: { address, primaryLocation } },
       { $new: true }
     )
 
-    if (!updatedCustomer) {
+    if (!updatedServiceProvider) {
       const { output } = badRequest('Error updating customer')
       return res.status(output.statusCode).json({ errors: { flash: output.payload.message }, output })
     }
 
-    return res.json(updatedCustomer)
+    return res.json(updatedServiceProvider)
   } catch (err) {
     const { output } = badRequest('Error updating customer')
     return res.status(output.statusCode).json({ ...err, output })
   }
 }
 
-const customerPrimaryServiceCategories = async (req, res) => {
-  const { body, user } = req
-  const { primaryServiceCategories } = body
-  const { userId: id } = user
-
-  if (isEmpty(primaryServiceCategories)) {
-    const { output } = notAllowed('Please select service categories')
-    return res.status(output.statusCode).json({ output })
-  }
-
-  ///GET CUSTOMER AND UPDATE
-  try {
-    const customer = await Customer.findOneAndUpdate(
-      { user: id },
-      { $set: { primaryServiceCategories } },
-      { $new: true }
-    )
-
-    if (!customer) {
-      const { output } = badRequest('Error updating primary services')
-      return res.status(output.statusCode).json({ output })
-    }
-
-    res.json(customer)
-  } catch (err) {
-    const { output } = badRequest('Error updating primary services')
-    return res.status(output.statusCode).json({ ...err, output })
-  }
-}
+const customerServices = async (req, res) => {}
 
 module.exports = {
-  createCustomer,
-  getCustomer,
-  getCustomers,
-  updateCustomer,
-  customerPrimaryServiceCategories,
+  createServiceProvider,
+  getServiceProvider,
+  getServiceProviders,
+  updateServiceProvider,
 }
