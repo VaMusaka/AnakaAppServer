@@ -10,7 +10,7 @@ const {
   customerPrimaryServiceCategories,
 } = CustomerController
 
-router.post('/create-customer', [jwtAuth], createCustomer)
+router.post('/create', [jwtAuth], createCustomer)
 
 router.get('/', [jwtAuth], getCustomer)
 
@@ -19,3 +19,5 @@ router.get('/list', [jwtAuth], getCustomers)
 router.post('/:customer', [jwtAuth], updateCustomer)
 
 router.post('/service-categories', [jwtAuth], customerPrimaryServiceCategories)
+
+module.exports = router

@@ -5,7 +5,11 @@ const { User, Customer } = models
 const { ValidateCreateCustomer } = require('../Validation/Index')
 const { createStripeCustomer, updateStripeCustomer } = require('./Stripe')
 
-const createCustomer = async (res, req) => {
+const createCustomer = async (req, res) => {
+  if (isEmpty(req.body)) {
+    const { output } = badRequest('Invalid Customer Input')
+    return res.status(output.statusCode).json({ output })
+  }
   const { user, body } = req
   const { email, id, name, phone } = user
   const { line1, line2, city, county, country, postal_code, latitude, longitude, primaryLocation } = body
@@ -16,7 +20,7 @@ const createCustomer = async (res, req) => {
   const { isValid, errors } = ValidateCreateCustomer(customer)
 
   if (!isValid) {
-    const { output } = badRequest('Invalid Customer Date')
+    const { output } = badRequest('Invalid Customer Input')
     return res.status(output.statusCode).json({ ...errors, output })
   }
 
@@ -84,7 +88,7 @@ const updateCustomer = async (req, res) => {
   const { isValid, errors } = ValidateCreateCustomer(customer)
 
   if (!isValid) {
-    const { output } = badRequest('Invalid Customer Date')
+    const { output } = badRequest('Invalid Customer Input')
     return res.status(output.statusCode).json({ ...errors, output })
   }
 
