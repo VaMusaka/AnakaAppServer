@@ -1,6 +1,7 @@
 const { badRequest, badImplementation } = require('@hapi/boom')
 const bcrypt = require('bcryptjs')
 const mailer = require('./Mailer')
+const { isEmpty } = require('lodash')
 const { models } = require('mongoose')
 const jwt = require('jsonwebtoken')
 const jwt_decode = require('jwt-decode')
@@ -291,6 +292,28 @@ const ResetPassword = async (req, res) => {
   }
 }
 
+const getCurrentUser = async (req, res) => {
+  const {
+    user: { id },
+  } = req
+
+  try {
+    const currentUser = await User.findById(id).populate('customer').populate('serviceProvider')
+
+    console.log(currentUser)
+
+    if (isEmpty(currentUser)) {
+      const { output } = badRequest()
+      return res.status(output.statusCode).json(output)
+    }
+    res.json(currentUser)
+  } catch (err) {
+    console.log(err)
+    const { output } = badRequest('Error getting user details')
+    return res.status(output.statusCode).json({ ...err, output })
+  }
+}
+
 module.exports = {
   Register,
   Login,
@@ -298,4 +321,5 @@ module.exports = {
   ResetPasswordRequest,
   SendEmailVerificationCode,
   ResetPassword,
+  getCurrentUser,
 }

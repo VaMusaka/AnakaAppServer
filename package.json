@@ -13,6 +13,7 @@
   "dependencies": {
     "@hapi/boom": "^9.1.0",
     "@sendgrid/mail": "^7.4.0",
+    "axios": "^0.21.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "bwip-js": "^2.0.11",
@@ -23,6 +24,7 @@
     "helmet": "^4.2.0",
     "jsonwebtoken": "^8.5.1",
     "jwt-decode": "^3.1.2",
+    "lodash": "^4.17.20",
     "moment": "^2.29.1",
     "mongoose": "^5.10.14",
     "morgan": "^1.10.0",

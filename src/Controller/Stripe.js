@@ -14,11 +14,11 @@ const getStripeCustomer = async id => {
 }
 
 //////================SERVICE PROVIDER=================/////
-const createStripeAccount = async account => {
+const createStripeServiceProvider = async account => {
   return await stripe.accounts.create(account)
 }
 
-const updateStripeAccount = async (id, account) => {
+const updateStripeServiceProvider = async (id, account) => {
   return await stripe.accounts.update(id, account)
 }
 
@@ -26,4 +26,6 @@ module.exports = {
   createStripeCustomer,
   updateStripeCustomer,
   getStripeCustomer,
+  createStripeServiceProvider,
+  updateStripeServiceProvider,
 }

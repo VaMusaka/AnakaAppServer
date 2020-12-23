@@ -21,7 +21,25 @@ const UserSchema = new Schema(
       date: { type: Date },
     },
   },
-  { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
+
+  {
+    toJSON: { virtuals: true },
+    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
+  }
 )
+
+UserSchema.virtual('customer', {
+  ref: 'Customer',
+  foreignField: 'user',
+  localField: '_id',
+  justOne: true,
+})
+
+UserSchema.virtual('serviceProvider', {
+  ref: 'ServiceProvider',
+  foreignField: 'user',
+  localField: '_id',
+  justOne: true,
+})
 
 module.exports = model('User', UserSchema)

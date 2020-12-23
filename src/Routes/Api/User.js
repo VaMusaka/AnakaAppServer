@@ -1,11 +1,23 @@
 const express = require('express')
 const router = express.Router()
 const { UserController } = require('../../Controller/Index')
-const { Register, Login, VerifyEmail, ResetPasswordRequest, ResetPassword, SendEmailVerificationCode } = UserController
+const { jwtAuth } = require('../../Middleware/Authentication')
+
+const {
+  Register,
+  Login,
+  VerifyEmail,
+  ResetPasswordRequest,
+  ResetPassword,
+  SendEmailVerificationCode,
+  getCurrentUser,
+} = UserController
 
 router.post('/register', Register)
 
 router.post('/login', Login)
+
+router.get('/', [jwtAuth], getCurrentUser)
 
 router.post('/verify-email', VerifyEmail)
 

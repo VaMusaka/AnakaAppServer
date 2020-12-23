@@ -4,6 +4,10 @@ const { Schema, model, ObjectId } = require('mongoose')
 const ServiceProviderSchema = new Schema(
   {
     user: { type: ObjectId, ref: 'User' },
+    name: { type: String, required: true },
+    business_type: { type: String, required: true, enum: ['individual', 'company'], default: 'individual' },
+    description: { type: String, required: true },
+    headline: { type: String },
     stripeAccountId: { type: String, required: true },
     address: {
       line1: { type: String, isRequired: true },
@@ -16,6 +20,8 @@ const ServiceProviderSchema = new Schema(
       latitude: { type: String },
     },
     primaryLocation: { type: String },
+    primaryServiceCategories: [{ type: ObjectId, ref: 'ServiceCategory' }],
+    vatId: { type: String },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
 )
