@@ -1,10 +1,9 @@
 const { badRequest, badImplementation } = require('@hapi/boom')
 const bcrypt = require('bcryptjs')
 const mailer = require('./Mailer')
-const { isEmpty } = require('lodash')
+const { isEmpty, toNumber } = require('lodash')
 const { models } = require('mongoose')
 const jwt = require('jsonwebtoken')
-const jwt_decode = require('jwt-decode')
 const { VerifyEmailTemplate, WelcomeEmailTemplate, PasswordResetEmailTemplate } = require('../Utils/EmailTemplates')
 const { CodeGenerator, RegExEmail } = require('../Utils/Helper')
 const {
@@ -65,6 +64,7 @@ const Register = async (req, res) => {
 
   //INPUT HAS ERRORS
   if (!isValid) {
+    console.log('invalid input')
     const { output } = badRequest()
     return res.status(output.statusCode).json(errors)
   }
@@ -73,6 +73,7 @@ const Register = async (req, res) => {
 
   //CHECK USER EXISTS
   if (await getUserByEmail(email)) {
+    console.log('user already exists')
     const { output } = badRequest()
     return res.status(output.statusCode).json({ email: 'Email address already taken please login' })
   }
@@ -85,6 +86,7 @@ const Register = async (req, res) => {
         lastname,
         email,
         active: true,
+        phone,
         type,
         emailVerified: false,
         password: generatePasswordHash(password),
@@ -94,8 +96,9 @@ const Register = async (req, res) => {
     )
 
     if (!newUser) {
+      console.log('Error creating account')
       const { output } = badRequest('Error creating account please try again')
-      res.status(output.statusCode).json(output)
+      return res.status(output.statusCode).json(output)
     }
 
     //SEND VERIFICATION EMAIL
@@ -103,10 +106,12 @@ const Register = async (req, res) => {
     await mailer(message)
 
     //RETURN SUCCESS
-    res.json({ success: true })
-  } catch (error) {
+    return res.json({ success: true })
+  } catch (err) {
+    console.log('Error creating account --- catch', err)
+
     const { output } = badRequest()
-    res.status(output.statusCode).json(error)
+    return res.status(output.statusCode).json(err)
   }
 }
 
@@ -174,6 +179,7 @@ const VerifyEmail = async (req, res) => {
 
   // VALIDATION ERRORS
   if (!isValid) {
+    console.log('validation failed')
     const { output } = badRequest(errors)
     return res.status(output.statusCode).json(errors)
   }
@@ -181,12 +187,12 @@ const VerifyEmail = async (req, res) => {
   //COMPLETE VALIDATION AND UPDATE USER
   try {
     const user = await User.findOneAndUpdate(
-      { email: RegExEmail(email), emailVerification: { token: emailVerificationToken } },
+      { email: RegExEmail(email) },
       { $set: { emailVerified: true } },
       { new: true }
     )
 
-    if (!user) {
+    if (!user && toNumber(user.emailVerification.token) === toNumber(emailVerificationtoken)) {
       const { output } = badRequest('Email verification failed')
       return res.status(output.statusCode).json(output.payload.message)
     }

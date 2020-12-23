@@ -19,7 +19,7 @@ const ServiceProviderSchema = new Schema(
       longitude: { type: String },
       latitude: { type: String },
     },
-    primaryLocation: { type: String },
+    primaryLocation: { type: String, isRequired: true },
     primaryServiceCategories: [{ type: ObjectId, ref: 'ServiceCategory' }],
     vatId: { type: String },
   },

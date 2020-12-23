@@ -2,11 +2,51 @@ const { badRequest, notFound, notAllowed } = require('@hapi/boom')
 const { isEmpty } = require('lodash')
 const { models } = require('mongoose')
 const { ServiceProvider } = models
-const { ValidateCreateServiceProvider } = require('../Validation/Index')
+const { ValidateServiceProvider, ValidateAddress } = require('../Validation/Index')
 const { createStripeServiceProvider, updateStripeServiceProvider } = require('./Stripe')
 const { savePrimaryServiceCategories, getAddressFromPostCode } = require('./Common')
 
-const createServiceProvider = async (res, req) => {
+//VALIDATE INPUT
+const validateInput = data => {
+  const {
+    name,
+    business_type,
+    headline,
+    description,
+    primaryLocation,
+    line1,
+    line2,
+    city,
+    county,
+    country,
+    postal_code,
+  } = data
+
+  //validate service provider
+  const validateServiceProvider = ValidateServiceProvider({
+    name,
+    business_type,
+    headline,
+    description,
+    primaryLocation,
+  })
+  const validateAddress = ValidateAddress({
+    line1,
+    line2,
+    city,
+    county,
+    country,
+    postal_code,
+  })
+
+  return {
+    isValid: !validateServiceProvider.isValid && !validateAddress.isValid,
+    errors: { ...validateAddress.errors, ...validateServiceProvider.errors },
+  }
+}
+
+//CREATE SERVICE PROVIDER FROM LOGGED IN USER
+const createServiceProvider = async (req, res) => {
   const { user, body } = req
   const { email, id, phone } = user
   const {
@@ -25,16 +65,21 @@ const createServiceProvider = async (res, req) => {
 
   //GET LAT LONG
   let { latitude, longitude } = body
+
   if (!latitude || !longitude) {
-    const { results } = await getAddressFromPostCode(postal_code)
-    latitude = results.latitude
-    longitude = results.longitude
+    try {
+      const results = await getAddressFromPostCode(postal_code)
+      latitude = results.latitude
+      longitude = results.longitude
+    } catch (err) {
+      console.log(err)
+    }
   }
 
   const address = { line1, line2, city, country, postal_code }
 
   //validate service provider
-  const { isValid, errors } = ValidateCreateServiceProvider({
+  const { isValid, errors } = await validateInput(
     name,
     business_type,
     headline,
@@ -44,11 +89,9 @@ const createServiceProvider = async (res, req) => {
     city,
     county,
     country,
-    latitude,
-    longitude,
     postal_code,
-    primaryLocation,
-  })
+    primaryLocation
+  )
 
   if (!isValid) {
     const { output } = badRequest('Invalid Service Provider Input')
@@ -56,20 +99,38 @@ const createServiceProvider = async (res, req) => {
   }
 
   try {
+    //check user already a service provider
+    const isServiceProvider = await ServiceProvider.findOne({ user: id })
+
+    if (isServiceProvider) {
+      const { output } = badRequest('User already service provider')
+      return res.status(output.statusCode).json(output)
+    }
+
     //create stripe account
     const stripeServiceProvider = await createStripeServiceProvider({
       email,
+      country,
+      type: 'express',
+      business_profile: {
+        name,
+        product_description: description,
+        support_address: address,
+        support_phone: phone,
+      },
+
       business_type,
-      description: `Anaka User ${id},`,
-      name,
-      address,
-      phone,
+      capabilities: {
+        card_payments: { requested: true },
+        transfers: { requested: true },
+      },
     })
 
     const newServiceProvider = new ServiceProvider({
       user: id,
       name,
-      type,
+      headline,
+      business_type,
       description,
       stripeAccountId: stripeServiceProvider.id,
       address: { ...address, county, latitude, longitude },
@@ -90,6 +151,7 @@ const createServiceProvider = async (res, req) => {
   }
 }
 
+//GET SERVICE PROVIDER WITH PARAM ID
 const getServiceProvider = async (req, res) => {
   const { id } = req.params
   try {
@@ -106,6 +168,7 @@ const getServiceProvider = async (req, res) => {
   }
 }
 
+//GET LIST OF SERVICE PROVIDERS
 const getServiceProviders = async (req, res) => {
   try {
     const serviceProvider = await ServiceProvider.find(id)
@@ -121,45 +184,67 @@ const getServiceProviders = async (req, res) => {
   }
 }
 
+//UPDATE LOGGED-IN SERVICE PROVIDER
 const updateServiceProvider = async (req, res) => {
-  const { user, body, params } = req
-  const { serviceProvider_id } = params
-  const { email, id, name, phone } = user
-  const { line1, line2, city, county, country, postal_code, primaryLocation } = body
+  const { user, body } = req
+  const { id, phone } = user
+  const {
+    name,
+    business_type,
+    description,
+    headline,
+    line1,
+    line2,
+    city,
+    county,
+    country,
+    postal_code,
+    primaryLocation,
+  } = body
   let { latitude, longitude } = body
-  const serviceProvider = { line1, line2, city, county, country, postal_code, latitude, longitude, primaryLocation }
   const address = { line1, line2, city, country, postal_code }
 
   //GET LAT LONG
   if (!latitude || !longitude) {
-    const { results } = await getAddressFromPostCode(postal_code)
+    const results = await getAddressFromPostCode(postal_code)
     latitude = results.latitude
     longitude = results.longitude
   }
-
   //validate service provider
-  const { isValid, errors } = ValidateCreateServiceProvider(serviceProvider)
+  const { isValid, errors } = await validateInput(
+    name,
+    business_type,
+    headline,
+    description,
+    line1,
+    line2,
+    city,
+    county,
+    country,
+    postal_code,
+    primaryLocation
+  )
 
   if (!isValid) {
-    const { output } = badRequest('Invalid Service Provider Date')
+    const { output } = badRequest('Invalid Service Provider Input')
     return res.status(output.statusCode).json({ ...errors, output })
   }
 
   try {
-    const updateServiceProvider = await ServiceProvider.findById(serviceProvider_id)
+    const updateServiceProvider = await ServiceProvider.findOne({ user: id })
 
-    if (!serviceProvider) {
-      const { output } = notFound('Service Providers not found')
-      return res.status(output.statusCode).json({ flash: output.payload.message, output })
-    }
-
-    //create stripe account
+    //update stripe account
     const stripeServiceProvider = await updateStripeServiceProvider(updateServiceProvider.stripeAccountId, {
-      email,
-      description: `Anaka Service provider ${id},`,
-      name,
-      address,
-      phone,
+      business_profile: {
+        name,
+        product_description: description,
+        support_address: address,
+        support_phone: phone,
+      },
+      capabilities: {
+        card_payments: { requested: true },
+        transfers: { requested: true },
+      },
     })
 
     if (!stripeServiceProvider) {
@@ -168,9 +253,18 @@ const updateServiceProvider = async (req, res) => {
     }
 
     //save updated serviceProvider
-    const updatedServiceProvider = await ServiceProvider.findByIdAndUpdate(
-      serviceProvider_id,
-      { $set: { address, primaryLocation } },
+    const updatedServiceProvider = await ServiceProvider.findOneAndUpdate(
+      { user: id },
+      {
+        $set: {
+          address: { ...address, county, latitude, longitude },
+          primaryLocation,
+          business_type,
+          name,
+          description,
+          headline,
+        },
+      },
       { $new: true }
     )
 
@@ -186,6 +280,7 @@ const updateServiceProvider = async (req, res) => {
   }
 }
 
+//UPDATE SERVICE PROVIDER PRIMARY SERVICES
 const serviceProviderPrimaryServiceCategories = async (req, res) => {
   const { body, user } = req
   const { primaryServiceCategories } = body
