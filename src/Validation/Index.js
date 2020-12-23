@@ -1,4 +1,3 @@
-////================AUTHENTICATION====================///
 const Validate = require('./validate')
 const UserRegister = require('./User/Register')
 const UserLogin = require('./User/Login')
@@ -6,14 +5,13 @@ const EmailVerification = require('./User/EmailVerification')
 const ResetPasswordRequest = require('./User/ResetPasswordRequest')
 const ResetPassword = require('./User/ResetPassword')
 
-////================CUSTOMER====================///
 const CreateCustomer = require('./Customer/Create')
 
-////================SERVICE PROVIDER====================///
-ServiceProvider = require('./ServiceProvider')
+const ServiceProvider = require('./ServiceProvider')
 
-////================COMMON====================///
-Address = require('./Common/Address')
+const Address = require('./Common/Address')
+
+const ServiceCategory = require('./ServiceCategory')
 
 module.exports = {
   ////================AUTHENTICATION====================///
@@ -28,6 +26,9 @@ module.exports = {
 
   ////================SERVICE PROVIDER====================///
   ValidateServiceProvider: data => Validate(ServiceProvider, data),
+
+  ////================SERVICE CATEGORY====================///
+  ValidateServiceCategory: data => Validate(ServiceCategory, data),
 
   ////================COMMON====================///
   ValidateAddress: data => Validate(Address, data),

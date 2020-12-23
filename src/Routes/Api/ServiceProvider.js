@@ -5,7 +5,7 @@ const { jwtAuth } = require('../../Middleware/Authentication')
 const {
   getServiceProvider,
   createServiceProvider,
-  getServiceProviders,
+  getServiceProviderList,
   updateServiceProvider,
   serviceProviderPrimaryServiceCategories,
 } = require('../../Controller/ServiceProvider')
@@ -14,7 +14,7 @@ const {
 router.post('/create', [jwtAuth], createServiceProvider)
 
 //GET SERVICE PROVIDERS
-router.get('/list', [jwtAuth], getServiceProviders)
+router.get('/list', [jwtAuth], getServiceProviderList)
 
 //GET SERVICE PROVIDER
 router.get('/:id', [jwtAuth], getServiceProvider)

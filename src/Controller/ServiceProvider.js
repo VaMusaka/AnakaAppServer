@@ -169,7 +169,7 @@ const getServiceProvider = async (req, res) => {
 }
 
 //GET LIST OF SERVICE PROVIDERS
-const getServiceProviders = async (req, res) => {
+const getServiceProviderList = async (req, res) => {
   try {
     const serviceProvider = await ServiceProvider.find(id)
     if (!serviceProvider) {
@@ -297,7 +297,7 @@ const serviceProviderPrimaryServiceCategories = async (req, res) => {
 module.exports = {
   createServiceProvider,
   getServiceProvider,
-  getServiceProviders,
+  getServiceProviderList,
   updateServiceProvider,
   serviceProviderPrimaryServiceCategories,
 }

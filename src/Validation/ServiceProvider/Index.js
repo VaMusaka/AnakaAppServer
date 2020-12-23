@@ -60,7 +60,7 @@ module.exports = data => {
     {
       description: {
         value: description,
-        message: 'Country is required',
+        message: 'Description is required',
       },
     },
     {
