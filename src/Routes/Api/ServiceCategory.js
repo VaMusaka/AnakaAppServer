@@ -10,7 +10,7 @@ const {
   updateServiceCategory,
 } = require('../../Controller/ServiceCategory')
 
-router.post('/create', [jwtAuth, isRootAdmin], createServiceCategory)
+router.post('/create', [isRootAdmin], createServiceCategory)
 
 //GET SERVICE PROVIDERS
 router.get('/list', [jwtAuth], getServiceCategoryList)
@@ -20,3 +20,5 @@ router.get('/:id', [jwtAuth], getServiceCategory)
 
 //UPDATE SERVICE PROVIDERS
 router.post('/update', [jwtAuth, isRootAdmin], updateServiceCategory)
+
+module.exports = router

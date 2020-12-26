@@ -8,7 +8,7 @@ const passport = require('passport')
 require('./src/Database/Index')
 
 //INITIALIZE ROUTES
-const { User, Customer, ServiceProvider } = require('./src/Routes/index')
+const { User, Customer, ServiceProvider, ServiceCategory } = require('./src/Routes/index')
 
 //AUTHENTICATION MIDDLEWARE
 const { authentication } = require('./src/Middleware/Authentication')
@@ -29,6 +29,7 @@ require('./src/Config/Passport')(passport)
 app.use('/api/user', User)
 app.use('/api/customer', Customer)
 app.use('/api/service-provider', ServiceProvider)
+app.use('/api/service-category', ServiceCategory)
 
 const port = process.env.PORT || 5000
 app.get('*', (req, res) => {
